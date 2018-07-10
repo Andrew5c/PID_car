@@ -1,0 +1,342 @@
+C51 COMPILER V9.01   LCD_TFT                                                               07/03/2018 19:55:35 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE LCD_TFT
+OBJECT MODULE PLACED IN lcd_tft.obj
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE USERS\lcd_tft.c BROWSE DEBUG OBJECTEXTEND PRINT(.\lcd_tft.lst) OBJECT(lc
+                    -d_tft.obj)
+
+line level    source
+
+   1          
+   2          //==================
+   3          //LCD_TFT.c
+   4          //==================
+   5          
+   6          #include "main.h"
+   7          
+   8          //************Ð´ÃüÁî********
+   9          void write_cmd(uchar cmd){      //8Î»¶þ½øÖÆÊý
+  10   1              CS = 0; //Æ¬Ñ¡£¬µÍµçÆ½ÓÐÐ§
+  11   1              RS = 0;
+  12   1              DATA = cmd;
+  13   1              RW = 0;    //ÉÏÉýÑØÐ´Èë£¿ÔÚÊý¾ÝÊÖ²áÀïÃæÃ»ÓÐÕÒµ½°¡£¡£¡£¡
+  14   1              RW = 1;
+  15   1              CS = 1;         //È¡ÏûÆ¬Ñ¡
+  16   1      }
+  17          //*******Ð´Êý¾Ý**********
+  18          void write_data(uchar dat){
+  19   1      
+  20   1              CS = 0; //Æ¬Ñ¡£¬µÍµçÆ½ÓÐÐ§
+  21   1              RS = 1;
+  22   1              DATA = dat;
+  23   1              RW = 0;    //ÉÏÉýÑØÐ´Èë£¿ÔÚÊý¾ÝÊÖ²áÀïÃæÃ»ÓÐÕÒµ½°¡£¡£¡£¡
+  24   1              RW = 1;
+  25   1              CS = 1;         //È¡ÏûÆ¬Ñ¡
+  26   1      }
+  27          
+  28          //******Ò»´ÎÐ´Èë**********
+  29          void write_data_16(uint dat){
+  30   1              write_data(dat>>8);
+  31   1              write_data(dat);
+  32   1      }
+  33          
+  34          //****LCD³õÊ¼»¯
+  35          void lcd_init(){
+  36   1      
+  37   1                      CS = 1;          //È¡ÏûÆ¬Ñ¡
+  38   1                      delayms(20);    
+  39   1                      RES = 0;
+  40   1                      delayms(20); //150ms
+  41   1                      RES = 1;          //¸´Î»Ë¢ÐÂ
+  42   1                      delayms(20); //150ms
+  43   1      
+  44   1                      write_cmd(0x2A);     //ÁÐµØÖ·ÉèÖÃ
+  45   1              write_data(0x00);    //ÁÐÆðÊ¼µØÖ·µÍ8Î»
+  46   1              write_data(0x00);    //ÁÐÆðÊ¼µØÖ·¸ß8Î»
+  47   1              write_data(0x00);    //ÁÐÖÕÖ¹µØÖ·¸ß8Î»
+  48   1                      write_data(0x9F);     //ÁÐÖÕÖ¹µØÖ·µÍ8Î»
+  49   1                                                      //ÉÏÃæµÄÁÐÖÕÖ¹µØÖ·ÎªÊ²Ã´ÉèÖÃ³É0x9f£¬0x9f=Ê®½øÖÆµÄ159£¬1.8´çµÄÆÁµÄ·Ö±æÂÊÊÇ128*160.
+  50   1                                                      //Ò²¾ÍÊÇËµÓÐ0-159¹²160ÁÐ¡£ ÏÂÃæµÄÍ¬ÑùµÄµÀÀí£¬Ö»²»¹ýÊÇËµÃ÷ÐÐµÄÆðÊ¼ºÍÖÕÖ¹µØÖ·¡£ 
+  51   1       
+  52   1                      write_cmd(0x2B); //ÐÐµØÖ·ÉèÖÃ
+  53   1              write_data(0x00);
+  54   1              write_data(0x00);
+C51 COMPILER V9.01   LCD_TFT                                                               07/03/2018 19:55:35 PAGE 2   
+
+  55   1              write_data(0x00);
+  56   1                      write_data(0x7F); 
+  57   1       
+  58   1                      write_cmd(0xCB); //¹¦ºÄ¿ØÖÆA 
+  59   1              write_data(0x39); 
+  60   1              write_data(0x2C); 
+  61   1              write_data(0x00); 
+  62   1              write_data(0x34); 
+  63   1              write_data(0x02); 
+  64   1       
+  65   1                      write_cmd(0xCF);//¹¦ºÄ¿ØÖÆB  
+  66   1              write_data(0x00); 
+  67   1              write_data(0XC1); 
+  68   1              write_data(0X30); 
+  69   1       
+  70   1              write_cmd(0xE8);//Çý¶¯Ê±Ðò¿ØÖÆA  
+  71   1              write_data(0x85); 
+  72   1              write_data(0x00); 
+  73   1              write_data(0x78); 
+  74   1       
+  75   1              write_cmd(0xEA);//Çý¶¯Ê±Ðò¿ØÖÆB  
+  76   1              write_data(0x00); 
+  77   1              write_data(0x00); 
+  78   1       
+  79   1              write_cmd(0xED);//µçÔ´ÐòÁÐ¿ØÖÆ  
+  80   1              write_data(0x64); 
+  81   1              write_data(0x03); 
+  82   1              write_data(0X12); 
+  83   1              write_data(0X81); 
+  84   1       
+  85   1              write_cmd(0xF7); //±Ã±È¿ØÖÆ 
+  86   1              write_data(0x20); 
+  87   1        
+  88   1              write_cmd(0xC0);    //Power control ¹¦ºÄ¿ØÖÆ1
+  89   1              write_data(0x23);   //VRH[5:0] `
+  90   1       
+  91   1              write_cmd(0xC1);    //Power control ¹¦ºÄ¿ØÖÆ2
+  92   1              write_data(0x10);   //SAP[2:0];BT[3:0] 
+  93   1       
+  94   1              write_cmd(0xC5);    //VCM control 
+  95   1              write_data(0x3e); //¶Ô±È¶Èµ÷½Ú
+  96   1              write_data(0x28); 
+  97   1       
+  98   1              write_cmd(0xC7);    //VCM control2 
+  99   1              write_data(0x86);  //--
+ 100   1       
+ 101   1              write_cmd(0x36);  // Memory Access Control  ´æ´¢Æ÷·ÃÎÊ¿ØÖÆ
+ 102   1              write_data(0x68); //C8   //48 68ÊúÆÁ//28 E8 ºáÆÁ
+ 103   1                                 //ccÍ¬c8
+ 104   1       
+ 105   1              write_cmd(0x3A); //ÏñËØ¸ñÊ½ÉèÖÃ   
+ 106   1              write_data(0x55); 
+ 107   1       
+ 108   1              write_cmd(0xB1);//Ö¡ËÙÂÊ¿ØÖÆ    
+ 109   1              write_data(0x00);  
+ 110   1              write_data(0x18); 
+ 111   1       
+ 112   1              write_cmd(0xB6);    // Display Function Control 
+ 113   1              write_data(0x08); 
+ 114   1              write_data(0x82);
+ 115   1              write_data(0x27);  
+ 116   1       
+C51 COMPILER V9.01   LCD_TFT                                                               07/03/2018 19:55:35 PAGE 3   
+
+ 117   1              write_cmd(0xF2);    // 3Gamma Function Disable 
+ 118   1              write_data(0x00); 
+ 119   1       
+ 120   1              write_cmd(0x26);    //Gamma curve selected 
+ 121   1              write_data(0x01); //¹²4ÌõÇúÏß¹©Ñ¡Ôñ£¬·Ö±ðÊÇ1248£»ÕâÀïÑ¡Ôñ1£¬
+ 122   1       
+ 123   1              write_cmd(0xE0);    //Set Gamma 
+ 124   1              write_data(0x0F); 
+ 125   1              write_data(0x31); 
+ 126   1              write_data(0x2B); 
+ 127   1              write_data(0x0C); 
+ 128   1              write_data(0x0E); 
+ 129   1              write_data(0x08); 
+ 130   1              write_data(0x4E); 
+ 131   1              write_data(0xF1); 
+ 132   1              write_data(0x37); 
+ 133   1              write_data(0x07); 
+ 134   1              write_data(0x10); 
+ 135   1              write_data(0x03); 
+ 136   1              write_data(0x0E); 
+ 137   1              write_data(0x09); 
+ 138   1              write_data(0x00); 
+ 139   1       
+ 140   1              write_cmd(0XE1);    //Set Gamma 
+ 141   1              write_data(0x00); 
+ 142   1              write_data(0x0E); 
+ 143   1              write_data(0x14); 
+ 144   1              write_data(0x03); 
+ 145   1              write_data(0x11); 
+ 146   1              write_data(0x07); 
+ 147   1              write_data(0x31); 
+ 148   1              write_data(0xC1); 
+ 149   1              write_data(0x48); 
+ 150   1              write_data(0x08); 
+ 151   1              write_data(0x0F); 
+ 152   1              write_data(0x0C); 
+ 153   1              write_data(0x31); 
+ 154   1              write_data(0x36); 
+ 155   1              write_data(0x0F); 
+ 156   1       
+ 157   1              write_cmd(0x11);    //Exit Sleep 
+ 158   1              delayms(50);            //120ms
+ 159   1              write_cmd(0x29);    //Display on 
+ 160   1              write_cmd(0x2c); 
+ 161   1      }
+ 162          
+ 163          //Ð´ÈëÊý¾ÝÊ±ÒªÏÈÈ·¶¨Í¼ÏñµÄÆðÊ¼ºÍÖÕÖ¹×ø±ê
+ 164          void lcd_setpos(uint x0,uint x1,uint y0,uint y1){
+ 165   1      
+ 166   1         write_cmd(0x2A);   //ÁÐµØÖ·ÉèÖÃ
+ 167   1         write_data(x0>>8);       //ÁÐÆðÊ¼µØÖ·¸ß8Î»
+ 168   1         write_data(x0);          //ÁÐÆðÊ¼µØÖ·µÍ8Î»
+ 169   1         write_data(x1>>8);       //ÁÐÖÕÖ¹µØÖ·¸ß8Î»
+ 170   1         write_data(x1);          //ÁÐÖÕÖ¹µØÖ·µÍ8Î»
+ 171   1        
+ 172   1         write_cmd(0x2B);//Ò³µØÖ·ÉèÖÃ
+ 173   1         write_data(y0>>8);
+ 174   1         write_data(y0);
+ 175   1         write_data(y1>>8);
+ 176   1         write_data(y1);
+ 177   1         write_cmd(0x2c);//Ð´´æ´¢Æ÷ 
+ 178   1      
+C51 COMPILER V9.01   LCD_TFT                                                               07/03/2018 19:55:35 PAGE 4   
+
+ 179   1      }
+ 180          
+ 181          //****ÏÔÊ¾ÑÕÉ«*******
+ 182          //void dsp_single_color(uint fount_color,uint back_color){      //Ç°¾°ÑÕÉ«£¬±³¾°ÑÕÉ«,Ç°¾°ÑÕÉ«ÊÇÊ²Ã´¶«¶«£¿
+ 183          //      uint i,j;
+ 184          //      for(i=0;i<160;i++){
+ 185          //              for(j=0;j<160;j++){
+ 186          //                       write_data(fount_color>>8);
+ 187          //                       write_data(fount_color);
+ 188          //                       write_data(back_color>>8);
+ 189          //                       write_data(back_color);                
+ 190          //              }               
+ 191          //      }
+ 192          //}
+ 193          
+ 194          
+ 195          //°ÑÉÏÃæÁ½¸öº¯Êý½áºÏ
+ 196          //***********¾ÍÊÇÔÚÈ«ÆÁÏÔÊ¾ÑÕÉ«********//µ÷ÊÔ³É¹¦
+ 197          void lcd_clear(uint lcd_color){
+ 198   1      
+ 199   1               uint i,j;
+ 200   1      
+ 201   1               lcd_setpos(0,LCD_WIDE-1,0,LCD_HIGH-1);//È«ÆÁ·¶Î§
+ 202   1      
+ 203   1               for(i=0;i<LCD_WIDE;i++){
+ 204   2      
+ 205   2                      for(j=0;j<LCD_HIGH;j++){
+ 206   3                                                 
+ 207   3                              write_data_16(lcd_color);       
+ 208   3                      }        
+ 209   2               }
+ 210   1      }
+ 211          
+ 212          //*************»­µã************* //µ÷ÊÔ³É¹¦
+ 213          //void draw_point(uint x,uint y,uint point_color){
+ 214          //
+ 215          //       lcd_setpos(x,x,y,y);
+ 216          //       write_data_16(point_color);
+ 217          //}
+ 218          
+ 219          /*
+ 220          ******Ö¸¶¨Î»ÖÃÏÔÊ¾µ¥¸ö×Ö·û
+ 221          ******xyÎ»ÖÃ£¬numÎª×Ö·û£¬ char_colorÎªÑÕÉ«
+ 222          **µ÷ÓÃ·½Ê½£º
+ 223                                  show_char(5,0,string[0]);
+ 224                                  show_char(5,16,'A');
+ 225          */
+ 226          void show_char(uint x,uint y,uchar num){
+ 227   1                
+ 228   1                uint pos,temp,t;
+ 229   1                uint x0 = x;
+ 230   1      
+ 231   1                if(x>LCD_WIDE-16 || y>LCD_HIGH-16)return;//·ÀÖ¹×ÖÌå¹ý´ó
+ 232   1                
+ 233   1                num = num - ' ';//µÃµ½Æ«ÒÆºóµÄÖµ £¿,µ«ÊÇÈ¥µôÕâÒ»¾äµÄ»°£¬Ã»ÓÐÆ«ÒÆÖµ£¬ÏÔÊ¾ºÍÔ¤¶©²»·û£¬but why?
+ 234   1      
+ 235   1                lcd_setpos(x,x+8-1,y,y+16-1); //ÉèÖÃ¹â±êÎ»ÖÃ
+ 236   1      
+ 237   1                for(pos = 0;pos<16;pos++){
+ 238   2      
+ 239   2                              temp =  asc2_1608[(unsigned short)num*16 + pos];
+ 240   2      
+C51 COMPILER V9.01   LCD_TFT                                                               07/03/2018 19:55:35 PAGE 5   
+
+ 241   2                              for(t=0;t<8;t++){       //ÏÂÃæÊÇÔÚ±³¾°ÑÕÉ«ÉÏÃæÇø·Ö³öÐèÒªÐ´ÈëµÄ×ÖÌå£¬±ÜÃâ×ÖÌåÑÕÉ«Óë±³¾°ÑÕÉ«ÖØºÏ¡£
+ 242   3                                      
+ 243   3                                      if(temp & 0x01)write_data_16(PEN_COLOR);//¿´À´»¹ÊÇÐèÒªÌáÇ°ÔÚÍ·ÎÄ¼þÀïÃædefineÒ»¸ö±Ê»­ºÍ±³¾°ÑÕÉ«·½±ãÒ»µã
+             -¡£
+ 244   3                                      else write_data_16(BACK_COLOR);
+ 245   3                                      temp>>=1;
+ 246   3                                      x++;                    
+ 247   3                              }
+ 248   2                              x = x0;
+ 249   2                              y++;      
+ 250   2                }
+ 251   1      }
+ 252          /*
+ 253          Èç¹û°ÑÆÁºá×Å·Å£¬µÚÒ»¸ö²ÎÊýÊ±ÏòÓÒxÖµµÄÔö¼ÓÁ¿£¬µÚ¶þ¸ö²ÎÊýÊÇÏòÏÂyÖµµÄÔö¼ÓÁ¿£¬×ÖÌå¿í8¸ß16£¬»»ÐÐµÄÊ±ºòµÚ¶þ¸ö²ÎÊ
+             -ý¼Ó16
+ 254          ÎªÁË·ÀÖ¹ÕÚµ²£¬µÚÒ»¸ö²ÎÊý¿ªÊ¼ÉèÖÃ5±È½ÏºÃ¿´£¬160-5=155£¬155/8=19£¬Ò»ÐÐ×î¶àÏÔÊ¾18¸ö×Ö·û
+ 255          */
+ 256          //*******ÌØ¶¨Î»ÖÃÏÔÊ¾×Ö·û´®******       //³É¹¦
+ 257          void show_string(uint x,uint y,const uchar *p){
+ 258   1      
+ 259   1                 while(*p != '\0'){
+ 260   2                              
+ 261   2                              if(x > LCD_WIDE-16){x = 0;y+=16;}
+ 262   2                              if(y > LCD_HIGH-16){y = x = 0;}
+ 263   2                              show_char(x,y,*p) ;
+ 264   2                              x+=8;
+ 265   2                              p++;
+ 266   2                 }
+ 267   1      }
+ 268          
+ 269          #if 0
+              //*****
+              uint my_pow(uchar m,uchar n){
+              
+                      uchar result = 1;
+                      while(n--)result*=m;
+                      return result; 
+              }
+              
+              
+              //**********ÏÔÊ¾Êý×Ö*****
+              void show_number(uint x,uint y,uint num,uchar len){
+              
+                        uint t,temp;
+                        for(t=0;t<len;t++){
+                               temp = (num/my_pow(10,len-t-1))%10;//´Ó¸ßÎ»µ½µÍÎ»ÒÀ´ÎÈ¡³ö
+                               show_char(x+8*t,y,temp+'0');
+                        }
+              }
+              
+              #endif
+ 290          
+ 291          
+ 292          //***********ÑÓÊ±*************
+ 293          void delayms(unsigned int tt){
+ 294   1                int i,j;
+ 295   1                for(i = 0;i<tt;i++){
+ 296   2                        for(j = 0;j<260;j++){
+ 297   3                                ;
+ 298   3                        }
+ 299   2                }
+ 300   1      }
+C51 COMPILER V9.01   LCD_TFT                                                               07/03/2018 19:55:35 PAGE 6   
+
+ 301          
+ 302          
+ 303          //========================
+ 304          //END OF FILE
+ 305          //========================
+ 306          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    928    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----      25
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

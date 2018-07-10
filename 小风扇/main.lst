@@ -1,0 +1,47 @@
+C51 COMPILER V9.01   MAIN                                                                  05/16/2018 11:12:52 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MAIN
+OBJECT MODULE PLACED IN main.obj
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE users\main.c BROWSE DEBUG OBJECTEXTEND PRINT(.\main.lst) OBJECT(main.obj
+                    -)
+
+line level    source
+
+   1          
+   2          #include "main.h"
+   3          
+   4          
+   5          int main()
+   6          {               
+   7   1              TIME2_UART_Init();
+   8   1      
+   9   1              TIME0_PWM_Init();
+  10   1              
+  11   1              //初始化完成后发送提示
+  12   1              UART_send_string("everything is OK.");
+  13   1              UART_send_string("be careful.");
+  14   1              //刚开机要确保电机不转，因为比较危险，当检测到蓝牙连接成功后，给出指示�
+             -��提示，并发出连接成功的提示
+  15   1              
+  16   1              //一直循环检测串口发送过来的命令
+  17   1              while(1)
+  18   1              {
+  19   2                      UART_resieve_analyse();
+  20   2              }
+  21   1      }
+  22          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     29    ----
+   CONSTANT SIZE    =     30    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,10 @@
+"car.obj",
+"delay.obj",
+"main.obj",
+"SR04.obj",
+"lcd_tft.obj",
+"word_modle.obj",
+"pid.obj",
+"uart.obj" 
+TO "PID_car" 
+RAMSIZE(256) 

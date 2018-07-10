@@ -1,0 +1,5 @@
+"main.obj",
+"motor.obj",
+"uart.obj" 
+TO "small_fan" 
+RAMSIZE(256) 

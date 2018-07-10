@@ -1,0 +1,177 @@
+C51 COMPILER V9.01   MOTOR                                                                 05/16/2018 11:12:52 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE MOTOR
+OBJECT MODULE PLACED IN motor.obj
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE users\motor.c BROWSE DEBUG OBJECTEXTEND PRINT(.\motor.lst) OBJECT(motor.
+                    -obj)
+
+line level    source
+
+   1          
+   2          #include "main.h"
+   3          
+   4          //中断中自然风切换变量
+   5          volatile unsigned char BLOW_NATURE = 0;
+   6          //定时器中断计数变量
+   7          unsigned char pwm_count = 0 ;
+   8          //电机转速控制变量，越大越快
+   9          volatile unsigned char pwm_duty = 0;
+  10          //自然风计数变量
+  11          volatile unsigned int nature_pwm_count = 0;
+  12          //自然风的占空比遍历
+  13          volatile unsigned char pwm_value = 0;
+  14          //每一级风速的计数变量
+  15          volatile unsigned char per_pwm_count = 0;       
+  16          //风速达到最大标志,等于1为风速最大
+  17          volatile unsigned char top_flag = 0;
+  18          //第一次自然风初始化
+  19          volatile unsigned char is_first_time_blow_nature = 0;
+  20          volatile unsigned char is_first_time_start = 0;
+  21          
+  22          
+  23          /*
+  24          ** 定时器0作为pwm波发生器;晶振为11.0592M
+  25          ** pwm频率为500HZ，周期为0.002s=2ms
+  26          ** 设置电机pwm的高电平时间范围为0.5ms - 1.8ms
+  27          ** 100us(oxa3)�жϺ����е�Ƶ���ˣ��������ó�200us���ԣ���ֵΪ0x47
+  28          */
+  29          void TIME0_PWM_Init(void)
+  30          {
+  31   1              TMOD |= 0X02;    /* 定时器0模式2, */  
+  32   1          TH0 = 0XA3;          /* 定时器设置，100us一次中断*/
+  33   1          TL0 = 0XA3;
+  34   1          ET0 = 1;             /* 开定时器中断*/
+  35   1          EA = 1;                      /* 开总中断*/
+  36   1              IP = 0X10;               //�����ж����ȼ��������ж����ȼ����
+  37   1              TR0 = 1;                 /* 打开定时器*/
+  38   1      }
+  39          
+  40          /*
+  41          ** 定时器0中断函数
+  42          ** 20次中断，变量清零一次，100us*20=2ms,这就是pwm的一个周期
+  43          ** 如果高电平时间范围为0.5ms - 1.8ms，也就是占空比为25% - 90%
+  44          ** 那么pwm_duty范围为5-18
+  45          ** 在自然风代码段的2100是设置的14个占空比从最小增加到最大的用时3s，的每一�
+             -�占空比应该持续的时间
+  46          */
+  47          void TIME0_Handle(void) interrupt 1
+  48          {
+  49   1              //如果没有定义这个宏，说明在普通模式
+  50   1              if(BLOW_NATURE == 0)
+  51   1              {
+  52   2                      pwm_count++;
+  53   2                      if(pwm_count <= pwm_duty)
+C51 COMPILER V9.01   MOTOR                                                                 05/16/2018 11:12:52 PAGE 2   
+
+  54   2                              MOTOR_PWM = 1;
+  55   2                      else
+  56   2                              MOTOR_PWM = 0;
+  57   2                      
+  58   2                      if(pwm_count == 20)
+  59   2                              pwm_count = 0;
+  60   2              }
+  61   1      
+  62   1              else
+  63   1              {
+  64   2                      nature_pwm_count++;
+  65   2                      per_pwm_count++;
+  66   2                      //pwm_value为初始化MOTOR_PWM = 1 持续的时间，这里要注意pwm_value的初始化值
+  67   2                      if(per_pwm_count <= pwm_value)
+  68   2                              MOTOR_PWM = 1;
+  69   2                      else
+  70   2                              MOTOR_PWM = 0;  
+  71   2                      if(per_pwm_count == 100)
+  72   2                      {
+  73   3                              per_pwm_count = 0;
+  74   3                              MOTOR_PWM = 1;
+  75   3                      }
+  76   2                      
+  77   2                      //风速还没有达到最大之前，继续增加占空比
+  78   2      
+  79   2                      //����nature_pwm_count�Ĵ�С�����Ըı���ٱ仯�Ŀ���
+  80   2                      if(nature_pwm_count == 5000 && top_flag == 0)
+  81   2                      {
+  82   3                              nature_pwm_count = 0;
+  83   3                              pwm_value++;
+  84   3                              if(pwm_value == 10)
+  85   3                              {
+  86   4                                      top_flag = 1;
+  87   4                              }       
+  88   3                      }
+  89   2                      //风速达到最大之后，开始减小占空比
+  90   2                      else if(nature_pwm_count == 5000 && top_flag == 1)
+  91   2                      {
+  92   3                              nature_pwm_count = 0;
+  93   3                              pwm_value--;
+  94   3                              if(pwm_value == 0)
+  95   3                              {
+  96   4                                      top_flag = 0;
+  97   4                              }       
+  98   3                      }       
+  99   2              }       
+ 100   1      }
+ 101          
+ 102          /*
+ 103          ** 打开风扇,并赋值占空比
+ 104          */
+ 105          void fan_start(unsigned char _duty)
+ 106          {
+ 107   1              //中断函数模式选择标志
+ 108   1              BLOW_NATURE = 0;
+ 109   1              pwm_duty = _duty;
+ 110   1              
+ 111   1              if(is_first_time_start == 1)
+ 112   1              {
+ 113   2                      is_first_time_start = 0;
+ 114   2                      
+ 115   2                      if(CMD_RX_Buffer[0] == 83)
+C51 COMPILER V9.01   MOTOR                                                                 05/16/2018 11:12:52 PAGE 3   
+
+ 116   2                              UART_send_string("**Start!**");
+ 117   2                      else if(CMD_RX_Buffer[0] == 67)
+ 118   2                              UART_send_string("**Close!**");
+ 119   2                      else
+ 120   2                              UART_send_string(CMD_RX_Buffer);
+ 121   2      
+ 122   2                      //为切换到自然风做准备
+ 123   2                      nature_pwm_count = 0;
+ 124   2                      per_pwm_count = 0;
+ 125   2                      top_flag = 0;
+ 126   2              }
+ 127   1      }
+ 128          
+ 129          /*
+ 130          ** 自然风实现函数,风速呈正弦波变化
+ 131          */
+ 132          void fan_blow_nature(void)
+ 133          {
+ 134   1              BLOW_NATURE = 1;
+ 135   1              
+ 136   1              //自然风初始占空比为5,但是只在进入的时候初始化一次，以后遍历都不在初始�
+             -�
+ 137   1              if(is_first_time_blow_nature == 1)
+ 138   1              {
+ 139   2                      is_first_time_blow_nature = 0;
+ 140   2                      UART_send_string("Nature!");
+ 141   2                      pwm_value = 0;
+ 142   2      
+ 143   2                      //正常模式的计数变量清零，防止切换时的卡顿
+ 144   2                      pwm_count = 0;
+ 145   2              }               
+ 146   1      }
+ 147          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    231    ----
+   CONSTANT SIZE    =     30    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =     10    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

@@ -1,0 +1,153 @@
+C51 COMPILER V9.01   KEY                                                                   07/03/2018 16:49:54 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE KEY
+OBJECT MODULE PLACED IN key.obj
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE USERS\key.c BROWSE DEBUG OBJECTEXTEND PRINT(.\key.lst) OBJECT(key.obj)
+
+line level    source
+
+   1          
+   2          #include "MAIN.h"
+   3          
+   4          uchar i;
+   5          uchar set_flag;
+   6          uchar chose_flag;
+   7          
+   8          
+   9          void set_remind(uchar flag){
+  10   1      
+  11   1                      switch(flag){
+  12   2                      case 0:
+  13   2                              show_string(0+5,32,"miao");break;//作为提示当前设置位数
+  14   2                      case 1:
+  15   2                              show_string(0+5,32,"    ");
+  16   2                              show_string(0+5,32,"fen");break;//一开始都忘记加break了，一按按键他全部循环一次！！！低级错误！
+  17   2                      case 2:
+  18   2                              show_string(0+5,32,"shi");break;
+  19   2                      case 3:
+  20   2                              show_string(0+5,32,"   ");
+  21   2                              show_string(0+5,32,"ri");break; //注意这里显示的字符比上一个少一个，需要刷新上面的
+  22   2                  case 4:
+  23   2                              show_string(0+5,32,"yue");break;
+  24   2                      case 0+5:
+  25   2                              show_string(0+5,32,"zhou");break;
+  26   2                      case 6:
+  27   2                              show_string(0+5,32,"nian");break;
+  28   2                      default:
+  29   2                              break;          
+  30   2                      }
+  31   1      }
+  32          
+  33          
+  34          //*********中断配置*****
+  35          void int0_config(){
+  36   1      
+  37   1         IT0 = 1;//跳变沿触发方式，1为低电平触发
+  38   1         EX0 = 1;//打开中断允许
+  39   1         EA = 1;//打开总中断
+  40   1      
+  41   1      }
+  42          
+  43          //**********中断进入函数******
+  44          /*
+  45          在中断里写函数的时候，遇到了这个错误，*** WARNING L15: MULTIPLE CALL TO SEGMENT
+  46          查资料才知道这个错误还挺重要的，可能在主函数和中断函数里面同时调用了一个相同的函数，使函数发生了从入，
+  47          尽管这样出现错误的概率很低，但是一旦出现错误，将会是很讨厌的错误，
+  48          解决方法：1、可以定义两个功能相同的函数，在中断和主函数里面分别调用，但是需要很多额外重复函数;
+  49          2、在中断函数里面设置一个标志，然后在主循环里面调用该函数
+  50          */
+  51          void int0() interrupt 0{
+  52   1      
+  53   1               delayms(5);
+  54   1               if(k3_set==0){
+  55   2      
+C51 COMPILER V9.01   KEY                                                                   07/03/2018 16:49:54 PAGE 2   
+
+  56   2                       set_flag = ~set_flag;
+  57   2                       chose_flag = 0;
+  58   2                       ds1302_init();//如果没有这句的话，设置完后又会回到原来的数字
+  59   2      
+  60   2         }
+  61   1      }
+  62          
+  63          //*********按键循环*********
+  64          void key_init(){
+  65   1       
+  66   1                      if(k1_chose==0){
+  67   2      
+  68   2                              delayms(5);
+  69   2                              if(k1_chose==0){
+  70   3      
+  71   3                                      chose_flag++;
+  72   3                                      set_remind(chose_flag);//提示当前设置位数
+  73   3      
+  74   3                                      if(chose_flag>=7)
+  75   3                                              chose_flag=0;                   
+  76   3                              }
+  77   2                              
+  78   2                              while((i<5)&&(k1_chose==0)){
+  79   3                                       delayms(5);
+  80   3                                       i++;                   
+  81   3                              }
+  82   2                               i = 0;
+  83   2                               //set_remind(chose_flag);//提醒当前设置的位数          
+  84   2                      }
+  85   1      
+  86   1                      if(k2_plus==0){
+  87   2      
+  88   2                         delayms(5);
+  89   2                         if(k2_plus==0){
+  90   3                         
+  91   3                                      init_time[chose_flag]++;
+  92   3                                      
+  93   3                                      if((init_time[chose_flag]&0x0f) > 9){// 转换为BCD码                             
+  94   4                                         init_time[chose_flag] = init_time[chose_flag] + 6;
+  95   4                                      }
+  96   3      
+  97   3                                      if((chose_flag<2)&&(init_time[chose_flag]>=0x61)){                              
+  98   4                                         init_time[chose_flag] = 0;//second and minute 
+  99   4                                      }
+ 100   3      
+ 101   3                                      if((chose_flag==2)&&(init_time[chose_flag]>=0x24)){                             
+ 102   4                                         init_time[chose_flag] = 0;//hour
+ 103   4                                      }
+ 104   3      
+ 105   3                                      if((chose_flag==3)&&(init_time[chose_flag]>=0x32)){                             
+ 106   4                                         init_time[chose_flag] = 1;//date
+ 107   4                                      }
+ 108   3      
+ 109   3                                      if((chose_flag==4)&&(init_time[chose_flag]>=0x13)){                             
+ 110   4                                         init_time[chose_flag] = 1;//month
+ 111   4                                      }
+ 112   3      
+ 113   3                                      if((chose_flag==5)&&(init_time[chose_flag]>=0x08)){                             
+ 114   4                                         init_time[chose_flag] = 1;//week
+ 115   4                                      }
+ 116   3      
+ 117   3                                      while((i<5)&&(k2_plus==0)){
+C51 COMPILER V9.01   KEY                                                                   07/03/2018 16:49:54 PAGE 3   
+
+ 118   4                                      
+ 119   4                                              delayms(5);
+ 120   4                                              i++;            
+ 121   4                                      }
+ 122   3                                      i = 0;
+ 123   3                         }            
+ 124   2                      }
+ 125   1      }
+ 126          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    424    ----
+   CONSTANT SIZE    =     39    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      3    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

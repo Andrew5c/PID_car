@@ -1,0 +1,123 @@
+C51 COMPILER V9.01   1                                                                     11/02/2017 19:12:19 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE 1
+OBJECT MODULE PLACED IN 1.OBJ
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE 1.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2          /*******************************************************
+   3                  task1 : LED0每  1s改变一次状态
+   4                  task2 ：LED1每0.7s改变一次状态
+   5                  task3 ：LED2每0.4s改变一次状态
+   6                  task4 ：LED3每0.2s改变一次状态
+   7          *******************************************************/
+   8          //第一次使用操作系统，在这个程序上面使用操作系统实在是没有必要，只是为了体验一下
+   9          //虽然看了很多关于分时操作系统的好处，但是还是得自己在实际工程中才能体会到他的好处
+  10          //使用前勾选target选项卡中的operating system里面的rtx51tiny选项，表示当前使用tiny系统
+  11          
+  12          #include "rtx51tny.h" //tiny系统的头文件
+  13          #include "reg52.h"
+  14          
+  15          sbit LED0 = P2^0; 
+  16          sbit LED1 = P2^1; 
+  17          sbit LED2 = P2^2; 
+  18          sbit LED3 = P2^3; 
+  19          
+  20          sbit key4 = P3^3; //按下按键，灭
+  21          
+  22          void init() _task_ 0{  //负责系统的初始化，tiny系统总是从这个函数开始执行，没有main函数
+  23   1      
+  24   1              LED0 = 1;
+  25   1              LED1 = 1;
+  26   1              LED2 = 1;
+  27   1              LED3 = 1;
+  28   1      
+  29   1              os_create_task(1); //创建5个任务
+  30   1              os_create_task(2);
+  31   1              os_create_task(3);
+  32   1              os_create_task(4);
+  33   1              os_create_task(5);
+  34   1      
+  35   1              os_delete_task(0);      //删除自己，使task0退出任务链表 
+  36   1      }
+  37          
+  38          
+  39          void job1() _task_ 1{
+  40   1      
+  41   1              while(1){
+  42   2      
+  43   2                       LED0 = !LED0;
+  44   2                       os_wait(K_TMO,10,0);//延时，CPU暂时去执行别的程序，等时间到了再回来执行，      
+  45   2              }
+  46   1      }
+  47          
+  48          void job2() _task_ 2{
+  49   1      
+  50   1                      while(1){
+  51   2      
+  52   2                       LED1 = !LED1;
+  53   2                       os_wait(K_TMO,8,0);
+  54   2              
+  55   2              }
+C51 COMPILER V9.01   1                                                                     11/02/2017 19:12:19 PAGE 2   
+
+  56   1      }
+  57          
+  58          
+  59          void job3() _task_ 3{
+  60   1      
+  61   1                      while(1){
+  62   2      
+  63   2                       LED2 = !LED2;
+  64   2                       os_wait(K_TMO,6,0);
+  65   2              
+  66   2              }
+  67   1      }
+  68          
+  69          
+  70          void job4() _task_ 4{
+  71   1      
+  72   1                      while(1){
+  73   2      
+  74   2                       LED3 = !LED3;
+  75   2                       os_wait(K_TMO,4,0);
+  76   2              
+  77   2              }
+  78   1      
+  79   1      
+  80   1      }
+  81          
+  82          void job5() _task_ 5{
+  83   1      
+  84   1              while(1){
+  85   2      
+  86   2                        if(key4==0){
+  87   3                                      LED2 = 1;
+  88   3                                      LED3 = 1;
+  89   3                                      os_delete_task(3);
+  90   3                                      os_delete_task(4);                              
+  91   3                        
+  92   3                        }
+  93   2              
+  94   2              }
+  95   1      }
+  96          
+  97          
+  98          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    113    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

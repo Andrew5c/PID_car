@@ -1,0 +1,127 @@
+C51 COMPILER V9.01   DS1302                                                                07/03/2018 16:49:54 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN ds1302.obj
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE USERS\ds1302.c BROWSE DEBUG OBJECTEXTEND PRINT(.\ds1302.lst) OBJECT(ds13
+                    -02.obj)
+
+line level    source
+
+   1          
+   2          #include "MAIN.h"
+   3          
+   4          //*******************
+   5          void ds1302_writebyte(uchar byte_1){
+   6   1              uchar i;
+   7   1              uchar t = 0x01;
+   8   1              for(i=0;i<8;i++){
+   9   2                      SCIO = byte_1 & t;              
+  10   2                      t<<=1;
+  11   2                      DOWN();    //下降沿完成一个位的操作
+  12   2              }
+  13   1              SCIO = 1;//确保释放io引脚
+  14   1      }
+  15          //********************
+  16          void ds1302_writedata(uchar addr,uchar data_){
+  17   1              
+  18   1              CE = 0;         nop();  
+  19   1              SCLK = 0;       nop();  
+  20   1              CE = 1;         nop();  //使能片选信号
+  21   1              ds1302_writebyte((addr<<1)|0x80);       //方便后面写入
+  22   1              ds1302_writebyte(data_);
+  23   1              CE = 0;         nop();//传送数据结束
+  24   1      
+  25   1      }
+  26          //*************************
+  27          uchar ds1302_readbyte(){
+  28   1              uint i;
+  29   1              uchar data_ = 0;
+  30   1              uint t = 0x01;   
+  31   1              for(i=0;i<7;i++){        //c51好像不支持直接在for循环里面直接定义变量
+  32   2      
+  33   2                      if(SCIO){
+  34   3      
+  35   3                              data_ = data_ | t;      //低位在前，逐位读取,刚开始不对，估计是这个的问题
+  36   3                      }                               
+  37   2                      t<<=1;
+  38   2                      DOWN();
+  39   2              }
+  40   1               return data_;
+  41   1      }
+  42          
+  43          
+  44          //************************
+  45          uchar ds1302_readdata(uchar addr){
+  46   1      
+  47   1              uchar data_ = 0;
+  48   1      
+  49   1              CE = 0;         nop();
+  50   1              SCLK = 0;  nop();
+  51   1              CE = 1;   nop();
+  52   1              ds1302_writebyte((addr<<1)|0x81);
+  53   1              data_ = ds1302_readbyte();
+  54   1              CE = 0;    nop();
+C51 COMPILER V9.01   DS1302                                                                07/03/2018 16:49:54 PAGE 2   
+
+  55   1              SCLK = 1;  nop();
+  56   1              SCIO = 0;  nop();
+  57   1              SCIO = 1;  nop();
+  58   1      
+  59   1              return data_;
+  60   1      }
+  61          
+  62          /*
+  63          有时候设置完时间发现再按下设置按键后，又回到原来的时间，根本没有按照设置的时间来，这个时候就要检查一下备用
+             -电源的接触问题
+  64          还有就是有没有在中断函数里面写入初始化函数，因为通过初始化操作把设置好的时间再次写入寄存器。
+  65          还有一个问题就是每次断电后重新启动时，发现每次都是回到原来设置的时间，这是因为代码问题，每次上电都是重新运
+             -行程序，
+  66          重新进行1302的初始化，重新写入初始化时间的，所以每次都是原来的时间。
+  67          解决方法：第一次下载程序的时候写入初始化，然后在主函数里删除初始化，到现在实验没有问题。还有方法就是下面加
+             -上的初始化判断。
+  68          
+  69          */
+  70          void ds1302_init(){
+  71   1      
+  72   1               uchar i;
+  73   1               CE = 0;   //初始化引脚
+  74   1               SCLK = 0; 
+  75   1      
+  76   1               i  = ds1302_readdata(0x00);  //读取秒寄存器,
+  77   1                                                                                                      
+  78   1               if((i & 0x80 != 0)){                   //通过判断秒寄存器是否还有数据来决定下次上电的时候是否初始化时间，就是掉电保护
+  79   2      
+  80   2                      ds1302_writedata(7,0x00); //撤销写保护，允许写入数据
+  81   2      
+  82   2                      for(i = 0;i<7;i++){
+  83   3      
+  84   3                              ds1302_writedata(i,init_time[i]);
+  85   3                      }
+  86   2               }
+  87   1                      ds1302_writedata(7,0x80);//打开写保护功能，防止干扰造成的数据写入。     
+  88   1      }
+  89          
+  90          //**************
+  91          void ds1302_readtime(){    //读取时间
+  92   1                uint i;
+  93   1                for(i = 0;i<7;i++){
+  94   2      
+  95   2                         init_time[i] = ds1302_readdata(i);
+  96   2                }
+  97   1      }
+  98          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    204    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

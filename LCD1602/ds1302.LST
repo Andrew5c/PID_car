@@ -1,0 +1,112 @@
+C51 COMPILER V9.01   DS1302                                                                10/27/2017 08:53:49 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE DS1302
+OBJECT MODULE PLACED IN ds1302.OBJ
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE ds1302.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          
+   2           #include "total.h"
+   3          
+   4          //*******************
+   5          void ds1302_writebyte(uchar byte){
+   6   1              uint i;
+   7   1              uint t = 0x01;
+   8   1              for(i=0;i<8;i++){
+   9   2                      SCIO = byte & t;                
+  10   2                      t<<=1;
+  11   2                      DOWN();    //下降沿完成一个位的操作
+  12   2              }
+  13   1              SCIO = 1;//确保释放io引脚
+  14   1      }
+  15          //********************
+  16          void ds1302_writedata(uchar addr,uchar data_){
+  17   1              
+  18   1              CE = 0;         nop();  
+  19   1              SCLK = 0;       nop();  
+  20   1              CE = 1;         nop();  //使能片选信号
+  21   1              ds1302_writebyte((addr<<1)|0x80);       //方便后面写入
+  22   1              ds1302_writebyte(data_);
+  23   1              CE = 0;         nop();//传送数据结束
+  24   1      
+  25   1      }
+  26          //*************************
+  27          uchar ds1302_readbyte(){
+  28   1              uint i;
+  29   1              uchar data_ = 0;
+  30   1              uint t = 0x01;   
+  31   1              for(i=0;i<7;i++){        //c51好像不支持直接在for循环里面直接定义变量
+  32   2      
+  33   2                      if(SCIO){
+  34   3      
+  35   3                              data_ = data_ | t;      //低位在前，逐位读取,刚开始不对，估计是这个的问题
+  36   3                      }                               
+  37   2                      t<<=1;
+  38   2                      DOWN();
+  39   2              }
+  40   1               return data_;
+  41   1      }
+  42          
+  43          
+  44          //************************
+  45          uchar ds1302_readdata(uchar addr){
+  46   1      
+  47   1              uchar data_ = 0;
+  48   1      
+  49   1              CE = 0;  nop();
+  50   1              SCLK = 0;  nop();
+  51   1              CE = 1;   nop();
+  52   1              ds1302_writebyte((addr<<1)|0x81);
+  53   1              data_ = ds1302_readbyte();
+  54   1              CE = 0;    nop();
+  55   1              SCLK = 1;  nop();
+C51 COMPILER V9.01   DS1302                                                                10/27/2017 08:53:49 PAGE 2   
+
+  56   1              SCIO = 0;  nop();
+  57   1              SCIO = 1;  nop();
+  58   1      
+  59   1              return data_;
+  60   1      }
+  61          
+  62          //*********************
+  63          void init_ds1302(){
+  64   1      
+  65   1               uchar i;
+  66   1               CE = 0;   //初始化引脚
+  67   1               SCLK = 0; 
+  68   1               i  = ds1302_readdata(0x00);  //读取秒寄存器,秒在最低位
+  69   1               if((i & 0x80 != 0)){
+  70   2      
+  71   2                      ds1302_writedata(7,0x00); //撤销写保护，允许写入数据
+  72   2                      for(i = 0;i<7;i++){
+  73   3      
+  74   3                              ds1302_writedata(i,init_time[i]);
+  75   3                      }
+  76   2               }      
+  77   1      }
+  78          
+  79          //**************
+  80          void ds1302_readtime(){    //读取时间
+  81   1                uint i;
+  82   1                for(i = 0;i<7;i++){
+  83   2      
+  84   2                         init_time[i] = ds1302_readdata(i);
+  85   2                }
+  86   1      }
+  87          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =    222    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =   ----       2
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)

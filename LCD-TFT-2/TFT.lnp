@@ -1,0 +1,8 @@
+"main.obj",
+"tft.obj",
+"word_modle.obj",
+"ds1302.obj",
+"key.obj",
+"temp.obj" 
+TO "TFT" 
+RAMSIZE(256) 

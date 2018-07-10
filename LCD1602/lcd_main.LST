@@ -1,0 +1,48 @@
+C51 COMPILER V9.01   LCD_MAIN                                                              10/27/2017 08:53:49 PAGE 1   
+
+
+C51 COMPILER V9.01, COMPILATION OF MODULE LCD_MAIN
+OBJECT MODULE PLACED IN lcd_main.OBJ
+COMPILER INVOKED BY: D:\keilC51\C51\BIN\C51.EXE lcd_main.c BROWSE DEBUG OBJECTEXTEND
+
+line level    source
+
+   1          #include "total.h"
+   2          
+   3          uchar init_time[] = {0x50,0x15,0x14,0x22,0x10,0x06,0x17};//初始化的时间 //秒 分 时 日 月 周 年 
+   4          //uint disp[8]={0x3f,0x3f,0x3f,0x3f,0x3f,0x3f,0x3f,0x3f};//把要显示的数字传给他 
+   5          
+   6          
+   7          void display();
+   8          
+   9           void main(){
+  10   1       
+  11   1              init_lcd1602();
+  12   1              init_ds1302();
+  13   1              
+  14   1              while(1){
+  15   2      
+  16   2                      display();       //如何把从1302中获取的动态数据传送到1602上面？
+  17   2              } 
+  18   1       }
+  19          
+  20           void display(){
+  21   1      
+  22   1               ds1302_readtime();
+  23   1       
+  24   1       }
+  25          
+
+
+MODULE INFORMATION:   STATIC OVERLAYABLE
+   CODE SIZE        =     14    ----
+   CONSTANT SIZE    =   ----    ----
+   XDATA SIZE       =   ----    ----
+   PDATA SIZE       =   ----    ----
+   DATA SIZE        =      7    ----
+   IDATA SIZE       =   ----    ----
+   BIT SIZE         =   ----    ----
+END OF MODULE INFORMATION.
+
+
+C51 COMPILATION COMPLETE.  0 WARNING(S),  0 ERROR(S)
